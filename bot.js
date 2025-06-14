@@ -44,17 +44,14 @@ const assignRoleHandler = async (req, res) => {
     console.log(`✅ Role "${role}" assigned to ${discordUsername}`);
 
     // Find a valid text channel the bot has permission to send messages in
-    const channel = guild.channels.cache.find(
-      (ch) => ch.name === 'general' && ch.isTextBased() && ch.permissionsFor(guild.members.me).has('SendMessages')
-    );
-
-    if (channel) {
+    const channel = guild.channels.cache.get('1223856559990509612');
+    if (channel && channel.isTextBased() && channel.permissionsFor(guild.members.me).has('SendMessages')) {
       await channel.send(
         `🎉 <@${member.user.id}> just became a **${roleObj.name}**! Welcome to the elite.`
       );
       console.log(`📣 Sent welcome message in #${channel.name}`);
     } else {
-      console.warn("⚠️ Could not find 'general' channel or bot lacks permission to send messages.");
+      console.warn("⚠️ Could not access the channel or lack send permissions.");
     }
 
     res.status(200).json({ success: true });
@@ -63,7 +60,7 @@ const assignRoleHandler = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
+  
 
 module.exports = {
   discordClient,
