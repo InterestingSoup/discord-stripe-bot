@@ -3,11 +3,12 @@ const stripeHandler = require('./stripe');
 const { assignRoleHandler, discordClient } = require('./bot');
 const createCheckout = require('./create-checkout-session'); // ✅ Add this
 require('dotenv').config();
-
+const verifyRoutes = require('./verify');
 const app = express();
 
 app.use('/stripe-webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
+app.use('/', verifyRoutes);
 
 app.post('/stripe-webhook', stripeHandler);
 app.post('/assign-role', assignRoleHandler);
