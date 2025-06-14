@@ -27,6 +27,7 @@ const assignRoleHandler = async (req, res) => {
     );
 
     if (!member) {
+      console.error(`❌ Member not found for username: ${discordUsername}`);
       return res.status(404).json({ error: 'User not found in guild' });
     }
 
@@ -35,19 +36,25 @@ const assignRoleHandler = async (req, res) => {
     );
 
     if (!roleObj) {
+      console.error(`❌ Role not found: ${role}`);
       return res.status(404).json({ error: 'Role not found' });
     }
 
     await member.roles.add(roleObj);
+    console.log(`✅ Role "${role}" assigned to ${discordUsername}`);
 
+    // Find a valid text channel the bot has permission to send messages in
     const channel = guild.channels.cache.find(
-      (ch) => ch.name === 'general' && ch.isTextBased()
+      (ch) => ch.name === 'general' && ch.isTextBased() && ch.permissionsFor(guild.members.me).has('SendMessages')
     );
 
     if (channel) {
       await channel.send(
-        `🎉 <@${member.user.id}> just became a **${role}**! Welcome!`
+        `🎉 <@${member.user.id}> just became a **${roleObj.name}**! Welcome to the elite.`
       );
+      console.log(`📣 Sent welcome message in #${channel.name}`);
+    } else {
+      console.warn("⚠️ Could not find 'general' channel or bot lacks permission to send messages.");
     }
 
     res.status(200).json({ success: true });
@@ -56,6 +63,7 @@ const assignRoleHandler = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 module.exports = {
   discordClient,
