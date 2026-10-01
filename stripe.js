@@ -44,6 +44,34 @@ module.exports = async (req, res) => {
     } catch (err) {
       console.error('❌ Failed to assign the VIP role:', err.message);
     }
+
+    // Invite the new VIP to the CRCMZ App (app.crcmz.me). The app creates their
+    // account and sends the branded email; the session id stops a retried
+    // webhook from emailing twice.
+    const email = session.metadata.email || session.customer_details?.email;
+    if (process.env.CRCMZ_APP_URL && process.env.VIP_INVITE_SECRET && email
+        && session.payment_status !== 'unpaid') {
+      try {
+        const response = await fetch(`${process.env.CRCMZ_APP_URL}/api/invites/vip`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Invite-Secret': process.env.VIP_INVITE_SECRET,
+          },
+          body: JSON.stringify({
+            email,
+            discordUsername,
+            gamerTag: session.metadata.gamerTag,
+            platform: session.metadata.platform,
+            stripeSessionId: session.id,
+            source: 'stripe',
+          }),
+        });
+        console.log('[APP] VIP invite result:', response.status, await response.text());
+      } catch (err) {
+        console.error('❌ Failed to send the CRCMZ App invite:', err.message);
+      }
+    }
   }
 
   res.status(200).send('Webhook received');
