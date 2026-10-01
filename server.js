@@ -1,6 +1,6 @@
 const express = require('express');
 const stripeHandler = require('./stripe');
-const { assignRoleHandler, discordClient } = require('./bot');
+const { discordClient } = require('./bot');
 const createCheckout = require('./create-checkout-session'); // ✅ Add this
 require('dotenv').config();
 const verifyRoutes = require('./verify');
@@ -11,7 +11,6 @@ app.use(express.json());
 app.use('/', verifyRoutes);
 
 app.post('/stripe-webhook', stripeHandler);
-app.post('/assign-role', assignRoleHandler);
 app.post('/create-checkout-session', createCheckout); // ✅ Add this
 app.get('/health', (req, res) => {
   if (discordClient.readyTimestamp) {

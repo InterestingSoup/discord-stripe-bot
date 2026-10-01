@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const fetch = require('node-fetch');
+const { assignVipRole } = require('./bot');
 const ws = require('ws');
 
 const supabase = createClient(
@@ -36,19 +36,13 @@ module.exports = async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const { discordUsername, role = 'VIP Clan Member' } = session.metadata;
+    const { discordUsername } = session.metadata;
 
     try {
-      const response = await fetch('http://localhost:3000/assign-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordUsername, role })
-      });
-
-      const result = await response.json();
+      const result = await assignVipRole(discordUsername);
       console.log(`[BOT] Role assignment result:`, result);
     } catch (err) {
-      console.error('❌ Failed to call /assign-role:', err.message);
+      console.error('❌ Failed to assign the VIP role:', err.message);
     }
   }
 
